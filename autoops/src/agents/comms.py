@@ -107,52 +107,7 @@ async def comms_agent_node(state: AgentState):
         except Exception as e:
             return f"Failed to read email {email_id}: {e}"
 
-    @tool
-    def send_email() -> str:
-        """Send an email. Use this when the user asks to send, reply to, or draft an email."""
-        prompt = f"""Extract the recipient email, subject, and body from the user's request. 
-Request: '{user_msg}'
-
-Output EXACTLY in this format with no other text:
-RECIPIENT: <email_address>
-SUBJECT: <subject_line>
-BODY: <email_body>"""
-        
-        extraction = llm.invoke(prompt).content.strip()
-        recipient = "unknown"
-        subject = "No Subject"
-        body = ""
-        
-        for line in extraction.split('\n'):
-            if line.startswith("RECIPIENT:"):
-                recipient = line.replace("RECIPIENT:", "").strip()
-            elif line.startswith("SUBJECT:"):
-                subject = line.replace("SUBJECT:", "").strip()
-            elif line.startswith("BODY:"):
-                body = line.replace("BODY:", "").strip()
-        
-        if recipient == "unknown" or "@" not in recipient:
-            return "Failed to send email: Could not determine a valid recipient email address from the request."
-            
-        try:
-            from email.message import EmailMessage
-            import base64
-            service = get_gmail_service()
-            message = EmailMessage()
-            message.set_content(body)
-            message["To"] = recipient
-            message["From"] = "me"
-            message["Subject"] = subject
-            
-            encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-            create_message = {"raw": encoded_message}
-            
-            service.users().messages().send(userId="me", body=create_message).execute()
-            return f"Success! Sent email to {recipient} with subject '{subject}'."
-        except Exception as e:
-            return f"Failed to send email: {e}"
-
-    tools = [count_emails, list_emails, read_email_details, send_email]
+    tools = [count_emails, list_emails, read_email_details]
     print(f"DEBUG: Loaded robust closure tools")
     
     system_prompt = (
@@ -161,7 +116,6 @@ BODY: <email_body>"""
         "- To count emails, call `count_emails`.\n"
         "- To list emails, call `list_emails`.\n"
         "- To read an email, call `read_email_details`.\n"
-        "- To send or reply to an email, call `send_email`.\n"
         "You do NOT need to pass any arguments. Just call the tool.\n"
         "Present lists in a clean, numbered list with emojis:\n"
         "1. 📧 *From:* Sender Name | *Subject:* Email Subject | *Date:* Date/Time\n"
