@@ -25,6 +25,7 @@ When building personal AI assistants with LLMs, you often hit limits:
 ## Key Features
 
 * **WhatsApp Native Interface**: You don't need to install a new app. Communicate with your AI directly through Meta's Cloud API on WhatsApp.
+* **Voice Note Integration**: Don't want to type? Hold down the microphone on WhatsApp and record a voice note. AutoOps intercepts the media and seamlessly transcribes it via **Sarvam AI's saaras:v3 model**.
 * **Robust Closure Tooling**: The Comms Agent uses inline Python closures to parse dates natively, bypassing standard JSON tool-calling to achieve mathematical certainty for relative time queries.
 * **Async Background Execution**: Webhook orchestration utilizes FastAPI `BackgroundTasks`. The server instantly returns `200 OK` to Meta to prevent retry loops while the heavy LLMs execute asynchronously.
 * **Dynamic MCP Tool Servers**: Tool capabilities are isolated in a local Model Context Protocol (MCP) server, decoupling AI logic from HTTP tool implementation.
@@ -47,17 +48,22 @@ AutoOps is built with a local-first, privacy-respecting design:
 ```mermaid
 sequenceDiagram
     autonumber
-    actor You as 👤 You (WhatsApp)
+    actor You as 🎙️ You (Voice Note)
     participant FastAPI as ⚡ FastAPI Gateway
+    participant Sarvam as 🗣️ Sarvam AI (STT)
     participant LangGraph as 🧠 LangGraph Router
     participant CommsAgent as 🤖 Comms Agent
     participant GmailAPI as 📧 Gmail Tool Server
 
-    You->>FastAPI: "How many emails did I receive today?"
+    You->>FastAPI: *Sends Audio Message*
     activate FastAPI
     FastAPI-->>You: 200 OK (Instant Receipt)
     Note over FastAPI: Spawns Background Task
-    FastAPI->>LangGraph: Forward User Message
+    FastAPI->>Sarvam: Download & Transcribe Audio
+    activate Sarvam
+    Sarvam-->>FastAPI: Returns Text String
+    deactivate Sarvam
+    FastAPI->>LangGraph: Forward Transcribed Message
     deactivate FastAPI
     
     activate LangGraph
