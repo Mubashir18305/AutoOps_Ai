@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+langgraph
+langchain
+langchain-core
+langchain-openai
+langchain-anthropic
+pydantic
+pydantic-settings
+redis
+python-dotenv
+mcp
