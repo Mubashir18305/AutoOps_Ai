@@ -5,7 +5,7 @@ from src.utils import get_llm
 from langchain_core.messages import SystemMessage
 
 class RouteDecision(BaseModel):
-    next_node: str = Field(description="The next agent to route to: 'comms_agent', 'docs_agent', 'research_agent', 'crm_agent', 'devops_agent', 'finance_agent', 'healthcare_agent', or 'finish'.")
+    next_node: str = Field(description="The next agent to route to: 'comms_agent' or 'finish'.")
     assigned_llm: str = Field(description="The LLM to use. Must be 'sarvam-105b'.")
 
 def orchestrator_router(state: AgentState) -> dict:
@@ -24,12 +24,6 @@ def orchestrator_router(state: AgentState) -> dict:
     system_prompt = SystemMessage(content="""You are the Orchestrator Router for an Enterprise AI OS.
 Analyze the user's latest request and route it to the appropriate agent:
 - comms_agent: Email, WhatsApp, Slack, Teams
-- docs_agent: Document retrieval, Drive, SharePoint, Contracts
-- research_agent: Web scraping, competitor analysis
-- crm_agent: Salesforce, Notion, Lead management
-- devops_agent: GitHub, CI/CD, Deployment
-- finance_agent: Invoices, Billing, ERP
-- healthcare_agent: HIPAA workflows, EHR, Patient data
 
 We exclusively use the Sarvam API for processing. Set assigned_llm to 'sarvam-105b'.
 Only output the requested JSON format without any additional reasoning.
