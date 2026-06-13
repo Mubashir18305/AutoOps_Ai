@@ -7,6 +7,8 @@
 
 **AutoOps AI** is an extensible, AI-powered automation operating system built on LangGraph. It acts as your personal AI fleet, accessible directly from your WhatsApp. By leveraging dynamic Model Context Protocol (MCP) tool servers and a modular specialist agent architecture, AutoOps routes your requests to the exact expert agent (Communications, DevOps, Finance, etc.) needed to execute the task securely and efficiently.
 
+> **About this project:** AutoOps AI was designed to solve the context-exhaustion and tool-hallucination problems inherent in single-prompt LLM assistants by routing complex tasks through specialized sub-graphs and deterministic Python closures.
+
 ---
 
 ## Why AutoOps AI?
