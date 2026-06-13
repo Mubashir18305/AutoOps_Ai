@@ -80,9 +80,62 @@ async def receive_whatsapp_message(request: Request, background_tasks: Backgroun
             
         msg = messages[0]
         phone_number = msg.get("from")
-        text_content = msg.get("text", {}).get("body", "")
         
-        print(f"Incoming WhatsApp message from {phone_number}: {text_content}")
+        msg_type = msg.get("type")
+        text_content = ""
+        
+        if msg_type == "audio":
+            audio_id = msg.get("audio", {}).get("id")
+            print(f"Incoming Voice Note (ID: {audio_id}) from {phone_number}. Downloading...")
+            
+            # 1. Get Audio URL from Meta
+            url = f"https://graph.facebook.com/v19.0/{audio_id}"
+            headers = {"Authorization": f"Bearer {WHATSAPP_ACCESS_TOKEN}"}
+            import requests
+            res = requests.get(url, headers=headers).json()
+            media_url = res.get("url")
+            
+            if media_url:
+                # 2. Download audio data
+                audio_data = requests.get(media_url, headers=headers).content
+                audio_path = f"temp_{audio_id}.ogg"
+                with open(audio_path, "wb") as f:
+                    f.write(audio_data)
+                
+                # 3. Transcribe via Sarvam API
+                print("Audio downloaded. Transcribing with SarvamAI...")
+                try:
+                    from sarvamai import SarvamAI
+                    sarvam_client = SarvamAI(api_subscription_key=os.getenv("SARVAM_API_KEY"))
+                    
+                    with open(audio_path, "rb") as af:
+                        response = sarvam_client.speech_to_text.transcribe(
+                            file=af,
+                            model="saaras:v3",
+                            mode="transcribe"
+                        )
+                    
+                    text_content = getattr(response, 'transcript', str(response))
+                    print(f"Transcribed Text: {text_content}")
+                    
+                    # Cleanup
+                    os.remove(audio_path)
+                except Exception as e:
+                    print(f"STT Error: {e}")
+                    text_content = "SYSTEM ERROR: Could not transcribe the voice note."
+            else:
+                text_content = "SYSTEM ERROR: Could not fetch audio media from WhatsApp."
+                
+        elif msg_type == "text":
+            text_content = msg.get("text", {}).get("body", "")
+        else:
+            print(f"Ignored unsupported message type: {msg_type}")
+            return {"status": "ignored"}
+        
+        if not text_content:
+            return {"status": "ignored"}
+            
+        print(f"Final Input to AI from {phone_number}: {text_content}")
         
         # Fire off the AI processing in the background
         background_tasks.add_task(process_and_reply, text_content, phone_number)
