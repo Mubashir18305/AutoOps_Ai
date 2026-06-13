@@ -145,16 +145,16 @@ python -m src.main
 
 ```text
 autoops/
- .env              # Your API keys and tokens
- credentials.json  # Google OAuth Client config
- token.json        # Google OAuth User token
- src/
-  agents/
-   comms.py        # Core LangChain agent with Python closures
-  mcp_server/
-   comms_server.py # Gmail API Tool Definitions
-  main.py          # FastAPI Gateway
-  orchestrator.py  # LangGraph routing logic
+├── .env              # Your API keys and tokens
+├── credentials.json  # Google OAuth Client config
+├── token.json        # Google OAuth User token
+└── src/
+    ├── agents/
+    │   └── comms.py  # Core LangChain agent with Python closures
+    ├── mcp_server/
+    │   └── comms_server.py # Gmail API Tool Definitions
+    ├── main.py       # FastAPI Gateway
+    └── orchestrator.py # LangGraph routing logic
 ```
 
 ---
