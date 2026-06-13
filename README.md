@@ -132,6 +132,3 @@ AutoOps is designed to scale horizontally across multiple domains:
 
 ---
 
-## License
-
-This project is licensed under the MIT License.
